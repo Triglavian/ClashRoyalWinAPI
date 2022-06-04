@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Folder
+Debug/
+x64/
+
+# Project
+*.rc
+*.vcxproj
+*.user
