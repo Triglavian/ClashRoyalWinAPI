@@ -7,9 +7,9 @@
 
 class Service {
 private:
-	Barbarian* bar;
-	Archer* arch;
-	Tick* rend_tick;
+	//Barbarian* bar;
+	//Archer* arch;
+	//Tick* rend_tick;
 	//Rendering render;
 public:
 	Service();

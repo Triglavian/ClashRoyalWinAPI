@@ -6,6 +6,6 @@ private:
 public:
 	Movement();
 	~Movement();
-	void Move(POINT&, const POINT);		//confirm modif pos to current pos
-	void CancelMove(POINT&, const POINT);	//reset modif pos to current pos
+	bool Move(POINT&, const POINT);		//confirm modif pos to current pos
+	bool CancelMove(POINT&, const POINT);	//reset modif pos to current pos
 };

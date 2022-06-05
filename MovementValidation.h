@@ -9,12 +9,12 @@ private:
 	double m_distance;
 	RECT m_window;
 	RECT m_area;
+	void get_rad(const POINT, const POINT);		//get rad by each side
+	void get_distance(const POINT, const POINT);//get distance btw both pos
 public:
 	MovementValidation();	//do not use
 	MovementValidation(int, HWND, HBITMAP);	//use this
 	~MovementValidation();
-	void get_rad(const POINT, const POINT);		//get rad by each side
-	void get_distance(const POINT, const POINT);//get distance btw both pos
 	void temp_move(POINT&, const POINT);	//temp move toward target
 	bool validate_move(const POINT);		//validate is temp move in playable area
 };

@@ -25,22 +25,28 @@ MovementValidation::MovementValidation(int p_speed, HWND p_hwnd, HBITMAP h_bit) 
 
 MovementValidation::~MovementValidation() { }
 
+void MovementValidation::temp_move(POINT& p_unit_temp_pos, const POINT p_target_pos) {	//temp move toward target
+	get_rad(p_unit_temp_pos, p_target_pos);
+	get_distance(p_unit_temp_pos, p_target_pos);
+	if (m_distance > m_speed) {
+		p_unit_temp_pos.x += (LONG)(m_speed * cos(m_rad));
+		p_unit_temp_pos.y += (LONG)(m_speed * sin(m_rad));
+	} else {
+		p_unit_temp_pos = p_target_pos;
+	}
+}
+
+bool MovementValidation::validate_move(const POINT p_unit_temp_pos) {	//validate is temp move in playable area
+	return !(p_unit_temp_pos.x + m_area.left < m_window.left		||
+		p_unit_temp_pos.x + m_area.right	> m_window.right	||
+		p_unit_temp_pos.y + m_area.top		< m_window.top		||
+		p_unit_temp_pos.y + m_area.bottom	> m_window.bottom);
+}
+
 void MovementValidation::get_rad(const POINT p_pos1, const POINT p_pos2) {	//get rad by each side
 	m_rad = atan((double)(p_pos1.x - p_pos2.x) / (double)(p_pos1.y - p_pos2.y));
 }
 
 void MovementValidation::get_distance(const POINT p_pos1, const POINT p_pos2) {	//get distance btw both pos
 	m_distance = sqrt(pow((double)p_pos1.x - (double)p_pos2.x, 2) + pow((double)p_pos1.y - (double)p_pos2.y, 2));
-}
-
-void MovementValidation::temp_move(POINT& p_unit_temppos, const POINT p_target_pos) {	//temp move toward target
-	p_unit_temppos.x += m_distance * cos(m_rad);
-	p_unit_temppos.y += m_distance * sin(m_rad);
-}
-
-bool MovementValidation::validate_move(const POINT p_unit_temp_pos) {	//validate is temp move in playable area
-	return (p_unit_temp_pos.x + m_area.left < m_window.left		||
-		p_unit_temp_pos.x + m_area.right	> m_window.right	||
-		p_unit_temp_pos.y + m_area.top		< m_window.top		||
-		p_unit_temp_pos.y + m_area.bottom	> m_window.bottom);
 }

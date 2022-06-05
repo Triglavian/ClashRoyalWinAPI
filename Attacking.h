@@ -1,14 +1,13 @@
-#pragma once
-class Attacking
-{
+#pragma once	
+
+class Attacking {
 private:
 	int m_dmg;
 public:
 	Attacking();			
 	Attacking(const int);
 	~Attacking(); 
-	void attack(int&);
-	//template <class T>
-	//void attack();
+	template<class Target>
+	void attack(Target*);	//using template and call target's get_damage func
 };
 

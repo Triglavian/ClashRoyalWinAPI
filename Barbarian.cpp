@@ -1,95 +1,67 @@
 #include "Barbarian.h"
 
 Barbarian::Barbarian() {
-	m_hp = 60;
-	m_atk_range = 1;
-	m_dmg = 11;
-	m_atk_speed = 800;
-	m_move_speed = 200;
-	m_x = 0;
-	m_y = 0;
-	m_modif_x = m_x;
-	m_modif_y = m_y;
-	m_atk_interval = new Interval(m_atk_speed);
-	m_move_interval = new Interval(m_move_speed);
-	m_atk_valid = new AttackRangeValidation(m_atk_range);
-	m_atk = new Attacking(m_dmg);
+	m_hp = new Hp(60);
+	m_atk_interval = new Interval(1000);
+	m_atk_valid = new AttackRangeValidation(90);
+	m_atk = new Attacking(16);
+	m_pos = new Position();
+	m_temp_pos = new Position();
+	m_mov_valid = new MovementValidation();
+	m_is_moving = true;
 }
 
-Barbarian::Barbarian(int p_x, int p_y) {
-	m_hp = 60;
-	m_atk_range = 1;
-	m_dmg = 11;
-	m_atk_speed = 800;
-	m_move_speed = 200;
-	m_x = p_x;
-	m_y = p_y;
-	m_modif_x = m_x;
-	m_modif_y = m_y;
-	m_atk_interval = new Interval(m_atk_speed);
-	m_move_interval = new Interval(m_move_speed);
-	m_atk_valid = new AttackRangeValidation(m_atk_range);
-	m_atk = new Attacking(m_dmg);
+Barbarian::Barbarian(const POINT p_pos, const HINSTANCE p_hinst, const HWND p_hwnd) {
+	HDC h_dc, h_imgdc;
+	HBITMAP h_bit, h_oldbit; 
+	
+	m_hp = new Hp(60);
+	m_atk_interval = new Interval(1000);
+	m_atk_valid = new AttackRangeValidation(90);
+	m_atk = new Attacking(21);
+	m_pos = new Position(p_pos);
+	m_temp_pos = new Position(p_pos);
+	h_dc = GetDC(p_hwnd);
+	h_imgdc = CreateCompatibleDC(h_dc);
+	h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP6));
+	h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
+	m_mov_valid = new MovementValidation(5, p_hwnd, h_bit);
+	SelectObject(h_imgdc, h_oldbit);
+	DeleteObject(h_bit);
+	DeleteDC(h_imgdc);
+	ReleaseDC(p_hwnd, h_dc);
+	m_is_moving = true;
 }
 
-Barbarian::~Barbarian() { 
+Barbarian::~Barbarian() {
+	delete m_hp;
 	delete m_atk_interval;
 	delete m_atk_valid;
 	delete m_atk;
+	delete m_pos;
+	delete m_temp_pos;
+	delete m_mov_valid;
 }
 
-int Barbarian::get_hp() {
-	return m_hp;
+int Barbarian::get_hp() {	//get current unit's hp
+	return m_hp->get_hp();
 }
 
-int Barbarian::get_x() {
-	return m_x;
+POINT Barbarian::get_pos() {	//get current unit's pos
+	return m_pos->get_pos();
 }
 
-int Barbarian::get_y() {
-	return m_y;
-}
-	
-//bool Barbarian::attack(const int p_target_x, const int p_target_y, int& p_target_hp) {
-//	if (m_atk_valid->is_in_range(m_x, m_y, p_target_x, p_target_y) == false) {
-//		m_atk_interval->validate_interval(false);	//reset attack interval
-//		return false;
-//	}
-//	if (m_atk_interval->validate_interval(true) == false) return false;	//if not enough interval 
-//	m_atk->attack(p_target_hp);
-//	return true;
-//}
-
-void Barbarian::move(const int p_direction) {
-	if (m_move_interval->validate_interval(true) == false) return;
-	m_mov_valid.temp_move(m_modif_x, m_modif_y, p_direction);
-	if (m_mov_valid.validate_movable(m_modif_x, m_modif_y) == false) {
-		m_movement.CancelMove(m_x, m_y, m_modif_x, m_modif_y);
+void Barbarian::move(const POINT p_target_pos) {
+	m_mov_valid->temp_move(m_temp_pos->get_pos(), p_target_pos);
+	if (m_mov_valid->validate_move(m_temp_pos->get_pos()) == false) {
+		m_is_moving = m_movement.CancelMove(m_temp_pos->get_pos(), m_pos->get_pos());
 		return;
 	}
-	m_movement.Move(m_x, m_y, m_modif_x, m_modif_y);
+	m_is_moving = m_movement.Move(m_pos->get_pos(), m_temp_pos->get_pos());
 }
 
-//void Barbarian::set_movable(const bool p_movable) {
-//	m_mov_valid.set_movable(p_movable);
-//}
-//
-//bool Barbarian::get_movable() {
-//	return m_mov_valid.get_movable();
-//}
-
-
-//Position& Barbarian::get_pos() {
-//	return m_pos.get_pos();
-//}
-
-//template <class T>
-//void Barbarian::attack(T p_target) {
-//	if (m_atk_valid.is_in_range(m_x, m_y, p_target.get_x(), p_target.get_y()) == false) {
-//		m_interval.validate_attack_interval(false);	//reset attack interval
-//		return;
-//	}
-//	if (m_interval.validate_attack_interval(true) == false) return;	//if not enough interval 
-//	m_atk.attack(p_target.get_hp());
-//}
- 
+template<class Target>
+void Barbarian::attack(Target* p_target) {
+	if ((m_atk_interval->validate_interval(true) || m_atk_valid->is_in_range(m_pos->get_pos(), p_target->m_pos->get_pos())) != true) return;
+	this->m_atk->attack(p_target);
+}

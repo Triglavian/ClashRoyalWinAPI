@@ -1,17 +1,16 @@
 #include "AttackRangeValidation.h"
 
-AttackRangeValidation::AttackRangeValidation() {
+AttackRangeValidation::AttackRangeValidation() {	//do not use
 	m_range = -1;
 }
 
-AttackRangeValidation::AttackRangeValidation(const int p_range) {
+AttackRangeValidation::AttackRangeValidation(const int p_range) {	//use this
 	m_range = p_range;
 }
 
 AttackRangeValidation::~AttackRangeValidation() { }
 
-bool AttackRangeValidation::is_in_range(int p_atker_x, int p_atker_y, int p_target_x, int p_target_y) {	
-	//validate distance btw each obj is shorter than attack range
-	return (m_range >= sqrt((pow((double)p_atker_x - (double)p_target_x, 2) + 
-		pow((double)p_atker_y - (double)p_target_y, 2))));
+bool AttackRangeValidation::is_in_range(const POINT p_pos1, const POINT p_pos2) {	//validate is the target in range
+	return (m_range >= sqrt((pow((double)p_pos1.x - (double)p_pos2.x, 2) +
+		pow((double)p_pos1.y - (double)p_pos2.y, 2))));
 }

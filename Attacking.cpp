@@ -10,6 +10,7 @@ Attacking::Attacking(const int p_dmg) {
 
 Attacking::~Attacking() { }
 
-void Attacking::attack(int& p_target_hp) {
-	p_target_hp -= m_dmg;
+template<class Target>
+void Attacking::attack(Target* p_target) {
+	p_target->m_hp->take_dmg(m_dmg);
 }

@@ -12,11 +12,14 @@ Hp::~Hp() {
 
 }
 
-bool Hp::get_dmg(int p_dmg) {
+void Hp::take_dmg(const int p_dmg) {  //take damage
     m_hp -= p_dmg;
-    return validate_hp();
 }
 
-bool Hp::validate_hp() {
-    return (m_hp >= 0);
+bool Hp::validate_hp() {    //validate current hp is positive, return if positive hp
+    return (m_hp > 0);
+}
+
+int Hp::get_hp() {  //get remain hp
+    return m_hp;
 }

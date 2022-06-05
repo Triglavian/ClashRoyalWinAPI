@@ -9,6 +9,6 @@ public:
 	Position(POINT);
 	~Position();
 	void set_pos(POINT);
-	POINT get_pos();
+	POINT& get_pos();
 };
 

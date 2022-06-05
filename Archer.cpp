@@ -1,94 +1,72 @@
 #include "Archer.h"
 
 Archer::Archer() {
-	//m_hp = 30;
-	//m_atk_range = 4;
-	//m_dmg = 8;
-	//m_atk_speed = 600;
-	//m_move_speed = 300;
-	//m_x = 0;
-	//m_y = 0;
-	//m_modif_x = m_x;
-	//m_modif_y = m_y;
 	m_hp = new Hp(30);
 	m_atk_interval = new Interval(60);
-	m_atk_valid = new AttackRangeValidation(50);
-	m_atk = new Attacking(16);
-	m_movement = new Movement()
+	m_atk_valid = new AttackRangeValidation(200);
+	m_atk = new Attacking(16);	
+	m_pos = new Position();
+	m_temp_pos = new Position();
+	m_mov_valid = new MovementValidation();
+	m_is_moving = true;
 }
 
-Hp* m_hp;
-Interval* m_atk_interval;
-AttackRangeValidation* m_atk_valid;
-Attacking* m_atk;
-Movement m_movement;
-MovementValidation m_mov_valid;
+Archer::Archer(const POINT p_pos, const HINSTANCE p_hinst, const HWND p_hwnd) {
+	HDC h_dc, h_imgdc;
+	HBITMAP h_bit, h_oldbit;
 
-Archer::Archer(const int p_x, const int p_y) {
-	m_hp = 30;
-	m_atk_range = 4;
-	m_dmg = 8;
-	m_atk_speed = 600;
-	m_move_speed = 300;
-	m_x = p_x;
-	m_y = p_y;
-	m_modif_x = m_x;
-	m_modif_y = m_y;
-	m_atk_interval = new Interval(m_atk_speed);
-	m_move_interval = new Interval(m_move_speed);
-	m_atk_valid = new AttackRangeValidation(m_atk_range);
-	m_atk = new Attacking(m_dmg);
+	m_hp = new Hp(30);
+	m_atk_interval = new Interval(800);
+	m_atk_valid = new AttackRangeValidation(200);
+	m_atk = new Attacking(16);
+	m_pos = new Position(p_pos);
+	m_temp_pos = new Position(p_pos);
+	h_dc = GetDC(p_hwnd);
+	h_imgdc = CreateCompatibleDC(h_dc);
+	h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP3));
+	h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
+	m_mov_valid = new MovementValidation(20, p_hwnd, h_bit);
+	SelectObject(h_imgdc, h_oldbit);
+	DeleteObject(h_bit);
+	DeleteDC(h_imgdc);
+	ReleaseDC(p_hwnd, h_dc);
+	m_is_moving = true;
 }
 
 Archer::~Archer() {
+	delete m_hp;
 	delete m_atk_interval;
 	delete m_atk_valid;
 	delete m_atk;
+	delete m_pos;
+	delete m_temp_pos;
+	delete m_mov_valid;
 }
 
-int Archer::get_hp() {
-	return m_hp;
+int Archer::get_hp() {	//get current unit's hp
+	return m_hp->get_hp();
 }
 
-int Archer::get_x() {
-	return m_x;
+POINT Archer::get_pos() {	//get current unit's pos
+	return m_pos->get_pos();
 }
 
-int Archer::get_y() {
-	return m_y;
-}
-
-#include "Rendering.h"
-
-//bool Archer::attack(const int p_target_x, const int p_target_y, int& p_target_hp) {
-//	Rendering temp;
-//	if (m_atk_valid->is_in_range(m_x, m_y, p_target_x, p_target_y) == false) {
-//		m_atk_interval->validate_interval(false);	//reset attack interval
-//		return false;
-//	}
-//	if (m_atk_interval->validate_interval(true) == false) {
-//		temp.cursor_pos(0, 20);
-//		std::cout << m_atk_interval->m_start << ", " << m_atk_interval->m_current << std::endl;
-//		return false;	//if not enough interval 
-//	}
-//	m_atk->attack(p_target_hp);
-//	return true;
-//}
-
-void Archer::move(const int p_direction) {
-	if (m_move_interval->validate_interval(true) == false) return;
-	m_mov_valid.temp_move(m_modif_x, m_modif_y, p_direction);
-	if (m_mov_valid.validate_movable(m_modif_x, m_modif_y) == false) {
-		m_movement.CancelMove(m_x, m_y, m_modif_x, m_modif_y);
+void Archer::move(const POINT p_target_pos) {
+	m_mov_valid->temp_move(m_temp_pos->get_pos(), p_target_pos);
+	if (m_mov_valid->validate_move(m_temp_pos->get_pos()) == false) {
+		m_is_moving = m_movement.CancelMove(m_temp_pos->get_pos(), m_pos->get_pos());
 		return;
 	}
-	m_movement.Move(m_x, m_y, m_modif_x, m_modif_y);
+	m_is_moving = m_movement.Move(m_pos->get_pos(), m_temp_pos->get_pos());
 }
-//
-//void Archer::set_movable(const bool p_movable) {
-//	m_mov_valid.set_movable(p_movable);
-//}
-//
-//bool Archer::get_movable() {
-//	return m_mov_valid.get_movable();
-//}
+//HINSTANCE, HDC, int, POINT, RECT
+
+void Archer::render_unit(HINSTANCE p_hinst, HDC p_dc) {
+	m_render.render_unit(p_hinst, p_dc, id_bm[2], m_pos->get_pos());
+}
+
+template<class Target>
+void Archer::attack(Target* p_target) {
+	if ((m_atk_interval->validate_interval(true) ||	m_atk_valid->is_in_range(m_pos->get_pos(), p_target->m_pos->get_pos())) != true) return;
+	this->m_atk->attack(p_target);
+}

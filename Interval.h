@@ -4,7 +4,7 @@
 class Interval {
 private:
 public:
-	int m_interval;	//ms
+	int m_tick;	//ms
 	int m_start;
 	int m_current;
 public:

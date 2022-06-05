@@ -1,9 +1,9 @@
 #include "Service.h"
 
 Service::Service() {
-	rend_tick = new Tick(200);
-	bar = new Barbarian(3, 4);
-	arch = new Archer(2, 3);
+	//rend_tick = new Tick();
+	//bar = new Barbarian({ 200, 200 });
+	//arch = new Archer({ 300, 300 });
 }
 
 Service::~Service() { 

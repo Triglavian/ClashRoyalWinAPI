@@ -6,35 +6,32 @@
 #include "Movement.h"
 #include "Hp.h"
 #include "resource.h"
+#include "Position.h"
+#include "Rendering.h"
 
 //#include "Rendering.h"
 
 class Barbarian
 {
 private:
-	int m_hp;
-	int m_atk_range;
-	int m_dmg;
-	int m_atk_speed;
-	int m_move_speed;
-	int m_x;
-	int m_y;
-	int m_modif_x;
-	int m_modif_y;	
+	Hp* m_hp;
 	Interval* m_atk_interval;
-	Interval* m_move_interval;
 	AttackRangeValidation* m_atk_valid;
 	Attacking* m_atk;
+	Position* m_pos;
+	Position* m_temp_pos;
+	MovementValidation* m_mov_valid;
 	Movement m_movement;
-	MovementValidation m_mov_valid;
-	//Rendering m_render;
+	bool m_is_moving;
+	Rendering m_render;
+	int id_bm[3] = { IDB_BITMAP4, IDB_BITMAP5, IDB_BITMAP6 };
 public:	
 	Barbarian();
-	Barbarian(int, int);
-	~Barbarian();
-	int get_hp();
-	int get_x();
-	int get_y();
-	//bool attack(const int, const int, int&);
-	void move(const int);
+	Barbarian(const POINT, const HINSTANCE, const HWND);
+	~Barbarian();		
+	int get_hp();		//get current unit's hp
+	POINT get_pos();	//get current unit's pos
+	void move(const POINT);	//move unit if movable
+	template <class Target>
+	void attack(Target*);	//target 
 };

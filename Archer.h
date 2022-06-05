@@ -6,37 +6,34 @@
 #include "Movement.h"
 #include "Hp.h"
 #include "resource.h"
+#include "Position.h"
+#include "Rendering.h"
 
 //#include "Rendering.h"
+class Barbarian;
 
 class Archer {
 private:
-	//int m_hp;
-	//int m_atk_range;
-	//int m_dmg;
-	//int m_atk_speed;
-	//int m_move_speed;
-	//int m_x;
-	//int m_y;
-	//int m_modif_x;
-	//int m_modif_y;
 	Hp* m_hp;
 	Interval* m_atk_interval;
 	AttackRangeValidation* m_atk_valid;
 	Attacking* m_atk;
-	Movement* m_movement;
-	MovementValidation m_mov_valid;
-	//Rendering m_render;
+	Position* m_pos;
+	Position* m_temp_pos;
+	MovementValidation* m_mov_valid;
+	Movement m_movement;
+	bool m_is_moving;
+	Rendering m_render;
+	const int id_bm[3] = { IDB_BITMAP1, IDB_BITMAP2, IDB_BITMAP3 };
+	
 public:
 	Archer();
-	Archer(int, int);
+	Archer(const POINT, const HINSTANCE, const HWND);
 	~Archer();
-	int get_hp();
-	int get_x();
-	int get_y();
-	//bool attack(const int, const int, int&);
-	void move(const int);
-	//void set_movable(const bool);
-	//bool get_movable();
+	int get_hp();		//get current unit's hp
+	POINT get_pos();	//get current unit's pos
+	void move(const POINT);	//move unit if movable
+	template <class Target>	
+	void attack(Target*);	//target 
+	void render_unit(HINSTANCE, HDC);
 };
-

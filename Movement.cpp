@@ -1,15 +1,15 @@
 #include "Movement.h"
 
-Movement::Movement() { 
-	m_speed = 0;
-}
+Movement::Movement() { }
 
 Movement::~Movement() { }
 
-void Movement::Move(POINT& p_unit_pos, const POINT p_target_pos) {
+bool Movement::Move(POINT& p_unit_pos, const POINT p_target_pos) {
 	p_unit_pos = p_target_pos;
+	return true;
 }
 
-void Movement::CancelMove(POINT& p_target_pos, const POINT p_unit_pos) {
+bool Movement::CancelMove(POINT& p_target_pos, const POINT p_unit_pos) {
 	p_target_pos = p_unit_pos;
+	return false;
 }

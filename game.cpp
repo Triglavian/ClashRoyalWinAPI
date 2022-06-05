@@ -1,14 +1,17 @@
 #pragma once
 #include <windows.h>
 #include "resource.h"
+#include "Barbarian.h"
+#include "Archer.h"
+//#include "GlobalInstance.h"
 
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE g_hInst;
 HWND hWndMain, h_card1, h_card2;
 LPCTSTR lpszClass = TEXT("Ã¤ÁØ¿µ_21311023");
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance , LPSTR lpszCmdParam, int nCmdShow) {
-	HWND hWnd;
+	//HWND hWnd;
 	MSG Message;
 	WNDCLASS WndClass;
 	g_hInst = hInstance;
@@ -25,10 +28,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance , LPSTR lpszCm
 	WndClass.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	RegisterClass(&WndClass);
 
-	hWnd = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
+	hWndMain = CreateWindow(lpszClass, lpszClass, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 		NULL, (HMENU)NULL, hInstance, NULL);
-	ShowWindow(hWnd, nCmdShow);
+	ShowWindow(hWndMain, nCmdShow);
 
 	while (GetMessage(&Message, NULL, 0, 0)) {
 		TranslateMessage(&Message);
@@ -44,6 +47,8 @@ void render(HWND, WPARAM, LPARAM);
 #define CARD_ARCH 101
 #define CARD_BARB 102
 void draw_bitmap(HDC, int, int, HBITMAP);
+static Archer* archer;
+static Barbarian* barb;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	HDC h_dc, h_memdc;
@@ -51,6 +56,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	HBITMAP h_bit, h_oldbit;
 	BITMAP bit;
 	POINT cursor;
+
 	switch (iMessage) {
 		case WM_CREATE:
 			//archer card
@@ -64,19 +70,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			g_btpos[1] = { g_btpos[0].x + bit.bmWidth + 20, g_btpos[0].y};
 			h_card2 = CreateWindow(L"button", L"", WS_CHILD | WS_VISIBLE | BS_BITMAP, g_btpos[1].x, g_btpos[1].y,bit.bmWidth, bit.bmHeight, hWnd, (HMENU)CARD_BARB, g_hInst, nullptr);
 			SendMessage(h_card2, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)h_bit);
-
-			SetTimer(hWnd, 1, 33, nullptr);
+			archer = new Archer({ 200, 300 }, g_hInst, hWnd);
+			barb = new Barbarian({ 200, 300 }, g_hInst, hWnd);
+			SetTimer(hWnd, 1, 200, nullptr);
 			return 0;
 		case WM_TIMER:
+			archer->move({ 500, 200 });
 			render(hWnd, wParam, lParam);
 			return 0;
 		case WM_LBUTTONDOWN:
-			
 			return 0;
 		case WM_PAINT:
 			h_dc = BeginPaint(hWnd, &ps);
 			h_memdc = CreateCompatibleDC(h_dc);
 
+			BitBlt(h_dc, 0, 0, 1000, 700, h_memdc, 0, 0, SRCCOPY);
 			if (g_membit != nullptr) draw_bitmap(h_dc, 0, 0, g_membit);
 			EndPaint(hWnd, &ps);
 			return 0;
@@ -89,29 +97,54 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 
 void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
 	HDC h_dc, h_memdc, h_imgdc;
-	HBITMAP h_bit, h_oldbit, h_gbit;
+	HBITMAP h_oldbit;
 	BITMAP bit;
 	RECT window;
 	h_dc = GetDC(p_hwnd);
 	h_memdc = CreateCompatibleDC(h_dc);
-	h_imgdc	= CreateCompatibleDC(h_dc);
+	h_imgdc	= CreateCompatibleDC(h_memdc);
 	GetClientRect(p_hwnd, &window);
 	if (g_membit == nullptr) {
 		g_membit = CreateCompatibleBitmap(h_dc, window.right, window.bottom);
 	}
-	h_gbit = (HBITMAP)SelectObject(h_memdc, g_membit);
+	h_oldbit = (HBITMAP)SelectObject(h_memdc, g_membit);
 	FillRect(h_memdc, &window, (HBRUSH)GetSysColor(WHITE_BRUSH));
-	
-	Rectangle(h_memdc, window.left + 50, window.top + 50, window.right - 50, 450);
 
-	
+	Rectangle(h_memdc, window.left + 50, window.top + 50, window.right - 50, 450);
+	archer->render_unit(g_hInst, h_memdc);
 
 	DeleteDC(h_imgdc);	
-	SelectObject(h_memdc, h_gbit);
+	SelectObject(h_memdc, g_membit);
 	DeleteDC(h_memdc);
 	ReleaseDC(p_hwnd, h_dc);
 	InvalidateRect(p_hwnd, nullptr, false);
 }
+
+//void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
+//	HDC h_dc, h_memdc, h_imgdc;
+//	HBITMAP h_bit, h_oldbit, h_gbit;
+//	BITMAP bit;
+//	RECT window;
+//	h_dc = GetDC(p_hwnd);
+//	h_memdc = CreateCompatibleDC(h_dc);
+//	h_imgdc = CreateCompatibleDC(h_dc);
+//	GetClientRect(p_hwnd, &window);
+//	if (g_membit == nullptr) {
+//		g_membit = CreateCompatibleBitmap(h_dc, window.right, window.bottom);
+//	}
+//	FillRect(h_memdc, &window, (HBRUSH)GetSysColor(WHITE_BRUSH));
+//
+//	archer->render_unit(g_hInst, h_memdc);
+//	Rectangle(h_memdc, window.left + 50, window.top + 50, window.right - 50, 450);
+//
+//
+//
+//	DeleteDC(h_imgdc);
+//	SelectObject(h_memdc, h_gbit);
+//	DeleteDC(h_memdc);
+//	ReleaseDC(p_hwnd, h_dc);
+//	InvalidateRect(p_hwnd, nullptr, false);
+//}
 
 void draw_bitmap(HDC p_dc, int p_x, int p_y, HBITMAP p_hbitmap) {
 	HDC h_memdc; 
