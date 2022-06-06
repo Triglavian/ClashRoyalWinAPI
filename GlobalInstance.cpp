@@ -10,8 +10,17 @@
 //	return *instance;
 //}
 //
-//HINSTANCE& GInstance::get_hinst() {
+//GInstance& GInstance::get_intsance() {
+//	static GInstance* instance = new GInstance(hInst, hWndMain);
+//	return *instance;
+//}
+//
+//HINSTANCE GInstance::get_hinst() {
 //	return hInst;
+//}
+//
+//HWND GInstance::get_hwnd() {
+//	return hWndMain;
 //}
 //
 //GInstance::~GInstance() { }

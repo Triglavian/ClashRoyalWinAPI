@@ -11,7 +11,7 @@ Archer::Archer() {
 	m_is_moving = true;
 }
 
-Archer::Archer(const POINT p_pos, const HINSTANCE p_hinst, const HWND p_hwnd) {
+Archer::Archer(const POINT p_pos) {
 	HDC h_dc, h_imgdc;
 	HBITMAP h_bit, h_oldbit;
 
@@ -21,11 +21,11 @@ Archer::Archer(const POINT p_pos, const HINSTANCE p_hinst, const HWND p_hwnd) {
 	m_atk = new Attacking(16);
 	m_pos = new Position(p_pos);
 	m_temp_pos = new Position(p_pos);
-	h_dc = GetDC(p_hwnd);
+	h_dc = GetDC(hWndMain);
 	h_imgdc = CreateCompatibleDC(h_dc);
-	h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP3));
+	h_bit = LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP3));
 	h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
-	m_mov_valid = new MovementValidation(20, p_hwnd, h_bit);
+	m_mov_valid = new MovementValidation(20, hWndMain, h_bit);
 	SelectObject(h_imgdc, h_oldbit);
 	DeleteObject(h_bit);
 	DeleteDC(h_imgdc);
@@ -61,12 +61,19 @@ void Archer::move(const POINT p_target_pos) {
 }
 //HINSTANCE, HDC, int, POINT, RECT
 
-void Archer::render_unit(HINSTANCE p_hinst, HDC p_dc) {
-	m_render.render_unit(p_hinst, p_dc, id_bm[2], m_pos->get_pos());
-}
-
-template<class Target>
-void Archer::attack(Target* p_target) {
+void Archer::attack(BaseUnit* p_target) {
 	if ((m_atk_interval->validate_interval(true) ||	m_atk_valid->is_in_range(m_pos->get_pos(), p_target->m_pos->get_pos())) != true) return;
 	this->m_atk->attack(p_target);
+}
+
+E_STATE Archer::get_state() {
+	return m_state_type;
+}
+
+void Archer::set_state_type(const E_STATE p_state) {
+	m_state_type = p_state;
+}
+
+void Archer::render_unit(HDC p_dc) {
+	m_render.render_unit(p_dc, id_bm[2], m_pos->get_pos());
 }

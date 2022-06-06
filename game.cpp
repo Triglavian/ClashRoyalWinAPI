@@ -3,10 +3,9 @@
 #include "resource.h"
 #include "Barbarian.h"
 #include "Archer.h"
-//#include "GlobalInstance.h"
+#include "GlobalInstance.h"
 
-HINSTANCE g_hInst;
-HWND hWndMain, h_card1, h_card2;
+HWND h_card1, h_card2;
 LPCTSTR lpszClass = TEXT("Ã¤ÁØ¿µ_21311023");
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
