@@ -1,9 +1,10 @@
 #include "Archer.h"
 
 Archer::Archer() {
+	m_id = -1;
 	m_hp = new Hp(30);
 	m_atk_interval = new Interval(60);
-	m_atk_valid = new AttackRangeValidation(200);
+	m_atk_valid = new AttackRangeValidation(500);
 	m_atk = new Attacking(16);	
 	m_pos = new Position();
 	m_temp_pos = new Position();
@@ -11,21 +12,22 @@ Archer::Archer() {
 	m_is_moving = true;
 }
 
-Archer::Archer(const POINT p_pos) {
+Archer::Archer(const int p_id, const POINT p_pos, const HINSTANCE p_hinst, const HWND p_hwnd) {
 	HDC h_dc, h_imgdc;
 	HBITMAP h_bit, h_oldbit;
 
+	m_id = p_id;
 	m_hp = new Hp(30);
 	m_atk_interval = new Interval(800);
-	m_atk_valid = new AttackRangeValidation(200);
+	m_atk_valid = new AttackRangeValidation(500);
 	m_atk = new Attacking(16);
 	m_pos = new Position(p_pos);
 	m_temp_pos = new Position(p_pos);
-	h_dc = GetDC(hWndMain);
+	h_dc = GetDC(p_hwnd);
 	h_imgdc = CreateCompatibleDC(h_dc);
-	h_bit = LoadBitmap(g_hInst, MAKEINTRESOURCE(IDB_BITMAP3));
+	h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP3));
 	h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
-	m_mov_valid = new MovementValidation(20, hWndMain, h_bit);
+	m_mov_valid = new MovementValidation(20, p_hwnd, h_bit);
 	SelectObject(h_imgdc, h_oldbit);
 	DeleteObject(h_bit);
 	DeleteDC(h_imgdc);
@@ -34,21 +36,13 @@ Archer::Archer(const POINT p_pos) {
 }
 
 Archer::~Archer() {
-	delete m_hp;
-	delete m_atk_interval;
-	delete m_atk_valid;
-	delete m_atk;
-	delete m_pos;
-	delete m_temp_pos;
-	delete m_mov_valid;
-}
-
-int Archer::get_hp() {	//get current unit's hp
-	return m_hp->get_hp();
-}
-
-POINT Archer::get_pos() {	//get current unit's pos
-	return m_pos->get_pos();
+	if(m_hp != nullptr)				delete m_hp;
+	if(m_atk_interval != nullptr)	delete m_atk_interval;
+	if(m_atk_valid != nullptr)		delete m_atk_valid;
+	if(m_atk != nullptr)			delete m_atk;
+	if(m_pos != nullptr)			delete m_pos;
+	if(m_temp_pos != nullptr)		delete m_temp_pos;
+	if(m_mov_valid != nullptr)		delete m_mov_valid;
 }
 
 void Archer::move(const POINT p_target_pos) {
@@ -61,19 +55,16 @@ void Archer::move(const POINT p_target_pos) {
 }
 //HINSTANCE, HDC, int, POINT, RECT
 
-void Archer::attack(BaseUnit* p_target) {
-	if ((m_atk_interval->validate_interval(true) ||	m_atk_valid->is_in_range(m_pos->get_pos(), p_target->m_pos->get_pos())) != true) return;
-	this->m_atk->attack(p_target);
+bool Archer::attack(BaseUnit& p_target) {
+	if ((m_atk_valid->is_in_range(m_pos->get_pos(), p_target.get_pos()) == false)) {
+		m_atk_interval->validate_interval(false);
+		return false;
+	}
+	if ((m_atk_interval->validate_interval(true)) == false) return true;
+	p_target.take_dmg(m_atk->attack());
+	return true;
 }
 
-E_STATE Archer::get_state() {
-	return m_state_type;
-}
-
-void Archer::set_state_type(const E_STATE p_state) {
-	m_state_type = p_state;
-}
-
-void Archer::render_unit(HDC p_dc) {
-	m_render.render_unit(p_dc, id_bm[2], m_pos->get_pos());
+void Archer::render_unit(HINSTANCE p_hinst, HDC p_dc) {
+	m_render.render_unit(p_hinst, p_dc, id_bm[2], m_pos->get_pos());
 }

@@ -1,8 +1,6 @@
 #pragma once
 #include <Windows.h>
-
-HINSTANCE g_hInst;
-HWND hWndMain;
+#include <memory>
 
 //#include <memory>
 //

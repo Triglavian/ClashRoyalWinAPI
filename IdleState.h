@@ -4,7 +4,7 @@
 class IdleState : protected BaseState {
 private:
 public:
-	void update(BaseUnit&);
-	void action(BaseUnit&);
+	void update(BaseUnit&, LPARAM);
+	void action();
 };
 

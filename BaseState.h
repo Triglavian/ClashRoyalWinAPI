@@ -7,7 +7,7 @@ protected:
 	static HWND m_hwnd;
 	static HINSTANCE m_hinst;
 public:
-	virtual void update(BaseUnit&) = 0;
-	virtual void action(BaseUnit&) = 0;
+	virtual void update(BaseUnit&, LPARAM) = 0;
+	virtual void action() = 0;
 };
 

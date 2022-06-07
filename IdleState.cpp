@@ -1,7 +1,7 @@
 #include "IdleState.h"
 
-void IdleState::update(BaseUnit& p_unit) {
+void IdleState::update(BaseUnit&, LPARAM) {
 }
 
-void IdleState::action(BaseUnit& p_unit) {
+void IdleState::action() {
 }

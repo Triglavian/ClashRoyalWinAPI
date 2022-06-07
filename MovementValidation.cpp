@@ -26,8 +26,8 @@ MovementValidation::MovementValidation(int p_speed, HWND p_hwnd, HBITMAP h_bit) 
 MovementValidation::~MovementValidation() { }
 
 void MovementValidation::temp_move(POINT& p_unit_temp_pos, const POINT p_target_pos) {	//temp move toward target
-	get_rad(p_unit_temp_pos, p_target_pos);
 	get_distance(p_unit_temp_pos, p_target_pos);
+	get_rad(p_unit_temp_pos, p_target_pos);
 	if (m_distance > m_speed) {
 		p_unit_temp_pos.x += (LONG)(m_speed * cos(m_rad));
 		p_unit_temp_pos.y += (LONG)(m_speed * sin(m_rad));
@@ -44,7 +44,7 @@ bool MovementValidation::validate_move(const POINT p_unit_temp_pos) {	//validate
 }
 
 void MovementValidation::get_rad(const POINT p_pos1, const POINT p_pos2) {	//get rad by each side
-	m_rad = atan((double)(p_pos1.x - p_pos2.x) / (double)(p_pos1.y - p_pos2.y));
+	m_rad = atan2((double)(p_pos2.y - p_pos1.y), (double)(p_pos2.x - p_pos1.x));
 }
 
 void MovementValidation::get_distance(const POINT p_pos1, const POINT p_pos2) {	//get distance btw both pos

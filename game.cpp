@@ -3,9 +3,9 @@
 #include "resource.h"
 #include "Barbarian.h"
 #include "Archer.h"
-#include "GlobalInstance.h"
-
-HWND h_card1, h_card2;
+//#include "GlobalInstance.h"
+HINSTANCE g_hInst;
+HWND hWndMain, h_card1, h_card2;
 LPCTSTR lpszClass = TEXT("Ã¤ÁØ¿µ_21311023");
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -46,8 +46,8 @@ void render(HWND, WPARAM, LPARAM);
 #define CARD_ARCH 101
 #define CARD_BARB 102
 void draw_bitmap(HDC, int, int, HBITMAP);
-static Archer* archer;
-static Barbarian* barb;
+static Archer* archer = nullptr;
+static Barbarian* barb = nullptr;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	HDC h_dc, h_memdc;
@@ -55,7 +55,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	HBITMAP h_bit, h_oldbit;
 	BITMAP bit;
 	POINT cursor;
-
+	static int selected;
 	switch (iMessage) {
 		case WM_CREATE:
 			//archer card
@@ -69,15 +69,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			g_btpos[1] = { g_btpos[0].x + bit.bmWidth + 20, g_btpos[0].y};
 			h_card2 = CreateWindow(L"button", L"", WS_CHILD | WS_VISIBLE | BS_BITMAP, g_btpos[1].x, g_btpos[1].y,bit.bmWidth, bit.bmHeight, hWnd, (HMENU)CARD_BARB, g_hInst, nullptr);
 			SendMessage(h_card2, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)h_bit);
-			archer = new Archer({ 200, 300 }, g_hInst, hWnd);
-			barb = new Barbarian({ 200, 300 }, g_hInst, hWnd);
+			selected = 0;
+			archer = new Archer(0, { 200, 300 }, g_hInst, hWnd);
+			barb = new Barbarian(0, { 1200, 150 }, g_hInst, hWnd);
 			SetTimer(hWnd, 1, 200, nullptr);
 			return 0;
 		case WM_TIMER:
-			archer->move({ 500, 200 });
+			
+			if (archer != nullptr && barb != nullptr) {
+				if (archer->attack(*barb) == false) {
+					archer->move(barb->get_pos());
+				}
+			}
 			render(hWnd, wParam, lParam);
 			return 0;
+		case WM_COMMAND:
+			switch (wParam) {
+				case CARD_ARCH:
+					archer = new Archer(0, { 200, 300 }, g_hInst, hWnd);
+					break;
+				case CARD_BARB:
+					barb = new Barbarian(0, { 1200, 150 }, g_hInst, hWnd);
+					break;
+			}
 		case WM_LBUTTONDOWN:
+			
 			return 0;
 		case WM_PAINT:
 			h_dc = BeginPaint(hWnd, &ps);
@@ -99,6 +115,7 @@ void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
 	HBITMAP h_oldbit;
 	BITMAP bit;
 	RECT window;
+	TCHAR str[128];
 	h_dc = GetDC(p_hwnd);
 	h_memdc = CreateCompatibleDC(h_dc);
 	h_imgdc	= CreateCompatibleDC(h_memdc);
@@ -110,8 +127,12 @@ void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
 	FillRect(h_memdc, &window, (HBRUSH)GetSysColor(WHITE_BRUSH));
 
 	Rectangle(h_memdc, window.left + 50, window.top + 50, window.right - 50, 450);
-	archer->render_unit(g_hInst, h_memdc);
-
+	if(archer != nullptr) archer->render_unit(g_hInst, h_memdc);
+	if (barb != nullptr) {
+		barb->render_unit(g_hInst, h_memdc);
+		wsprintf(str, TEXT("HP : %d"), barb->get_hp());
+		TextOut(h_memdc, 0, 0, str, lstrlen(str));
+	}
 	DeleteDC(h_imgdc);	
 	SelectObject(h_memdc, g_membit);
 	DeleteDC(h_memdc);

@@ -62,6 +62,10 @@ IDB_BITMAP5             BITMAP                  "C:\\Users\\Admin\\Pictures\\bar
 
 IDB_BITMAP6             BITMAP                  "C:\\Users\\Admin\\Pictures\\barbarians3.bmp"
 
+IDB_BITMAP7             BITMAP                  "C:\\Users\\Admin\\Pictures\\tower_red2.bmp"
+
+IDB_BITMAP8             BITMAP                  "C:\\Users\\Admin\\Pictures\\tower_blue2.bmp"
+
 #endif    // 한국어(대한민국) resources
 /////////////////////////////////////////////////////////////////////////////
 

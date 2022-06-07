@@ -10,10 +10,9 @@
 class UnitState {
 public:
 	UnitState();
-	UnitState();
 	~UnitState();
-	std::array<std::function<void(BaseUnit&, WPARAM)>, (int)E_STATE::E_MAX> fp_update;
-	std::array<std::function<void(BaseUnit&)>, (int)E_STATE::E_MAX> fp_action;
+	std::array<std::function<void(BaseUnit&, LPARAM)>, (int)E_STATE::E_MAX> fp_update;
+	std::array<std::function<void()>, (int)E_STATE::E_MAX> fp_action;
 private:
 	E_STATE m_state;
 	AttackingState* m_atk;
