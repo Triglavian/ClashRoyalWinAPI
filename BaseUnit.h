@@ -3,6 +3,7 @@
 #include "Hp.h"
 #include "resource.h"
 #include "Position.h"
+#include <vector>	
 //#include "Rendering.h"
 
 class BaseUnit {
@@ -15,7 +16,6 @@ protected:
 	//m_state_type
 	//E_STATE m_state_type;
 	//UnitState* m_state;
-
 	//Rendering m_render;
 public:
 	int get_hp();		//get current unit's hp
@@ -29,5 +29,7 @@ public:
 	//void set_state_type(const E_STATE);
 
 	virtual void render_unit(HINSTANCE, HDC) = 0;
+	template <class Unit>
+	void get_target(std::vector<Unit*>);
 };
 

@@ -29,15 +29,17 @@ private:
 
 	Rendering m_render;
 	const int id_bm[3] = { IDB_BITMAP1, IDB_BITMAP2, IDB_BITMAP3 };
+	void move(const POINT);	//move unit if movable
+	template <class Unit>
+	bool attack(Unit&);		//target 
 public:
 	Archer();
-	Archer(const int, const POINT, const HINSTANCE, const HWND);
+	Archer(const int, const POINT, const HWND);
 	~Archer();
-	void move(const POINT);	//move unit if movable
-	bool attack(BaseUnit&);		//target 
 
 	//E_STATE get_state();
 	//void set_state_type(const E_STATE);
-
+	template <class Unit>
+	void update(Unit&, POINT);
 	void render_unit(HINSTANCE, HDC);
 };

@@ -1,9 +1,10 @@
 #pragma once
 #include <windows.h>
 #include "resource.h"
-#include "Barbarian.h"
-#include "Archer.h"
+#include "UnitManager.h"
+
 //#include "GlobalInstance.h"
+
 HINSTANCE g_hInst;
 HWND hWndMain, h_card1, h_card2;
 LPCTSTR lpszClass = TEXT("Ã¤ÁØ¿µ_21311023");
@@ -41,13 +42,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance , LPSTR lpszCm
 
 HBITMAP g_membit;
 POINT g_btpos[2];	//each card button pos
+RECT playable_area;
+UnitManager team1_manager;
+UnitManager team2_manager;
 
 void render(HWND, WPARAM, LPARAM);
 #define CARD_ARCH 101
 #define CARD_BARB 102
 void draw_bitmap(HDC, int, int, HBITMAP);
-static Archer* archer = nullptr;
-static Barbarian* barb = nullptr;
+bool validate_click(POINT);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	HDC h_dc, h_memdc;
@@ -69,31 +72,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			g_btpos[1] = { g_btpos[0].x + bit.bmWidth + 20, g_btpos[0].y};
 			h_card2 = CreateWindow(L"button", L"", WS_CHILD | WS_VISIBLE | BS_BITMAP, g_btpos[1].x, g_btpos[1].y,bit.bmWidth, bit.bmHeight, hWnd, (HMENU)CARD_BARB, g_hInst, nullptr);
 			SendMessage(h_card2, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)h_bit);
+			GetClientRect(hWnd, &playable_area);
+			playable_area = { playable_area.left += 50, playable_area.top += 50, playable_area.right -= 50, 450 };
 			selected = 0;
-			archer = new Archer(0, { 200, 300 }, g_hInst, hWnd);
-			barb = new Barbarian(0, { 1200, 150 }, g_hInst, hWnd);
 			SetTimer(hWnd, 1, 200, nullptr);
 			return 0;
 		case WM_TIMER:
-			
-			if (archer != nullptr && barb != nullptr) {
-				if (archer->attack(*barb) == false) {
-					archer->move(barb->get_pos());
-				}
-			}
+			team1_manager.update();
+			team2_manager.update();
 			render(hWnd, wParam, lParam);
 			return 0;
 		case WM_COMMAND:
 			switch (wParam) {
 				case CARD_ARCH:
-					archer = new Archer(0, { 200, 300 }, g_hInst, hWnd);
-					break;
 				case CARD_BARB:
-					barb = new Barbarian(0, { 1200, 150 }, g_hInst, hWnd);
+					selected = wParam;
 					break;
 			}
+			return 0;
 		case WM_LBUTTONDOWN:
-			
+			GetCursorPos(&cursor);
+			if (validate_click(cursor) == false) return 0;
+			unit_manager.CreateUnit(hWnd, selected, cursor);
 			return 0;
 		case WM_PAINT:
 			h_dc = BeginPaint(hWnd, &ps);
@@ -132,6 +132,9 @@ void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
 		barb->render_unit(g_hInst, h_memdc);
 		wsprintf(str, TEXT("HP : %d"), barb->get_hp());
 		TextOut(h_memdc, 0, 0, str, lstrlen(str));
+	}
+	if (tower != nullptr) {
+		tower->render_unit(g_hInst, h_memdc);
 	}
 	DeleteDC(h_imgdc);	
 	SelectObject(h_memdc, g_membit);
@@ -176,4 +179,11 @@ void draw_bitmap(HDC p_dc, int p_x, int p_y, HBITMAP p_hbitmap) {
 	BitBlt(p_dc, 0, 0, bit.bmWidth, bit.bmHeight, h_memdc, 0, 0, SRCCOPY);
 	SelectObject(h_memdc, h_oldbit);
 	DeleteDC(h_memdc);
+}
+
+bool validate_click(POINT p_pos) {
+	return (p_pos.x > playable_area.left &&
+		p_pos.y > playable_area.top &&
+		p_pos.x < playable_area.right&&
+		p_pos.y < playable_area.bottom);
 }

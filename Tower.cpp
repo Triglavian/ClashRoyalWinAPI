@@ -29,10 +29,22 @@ Tower::~Tower() {
 	if (m_temp_pos != nullptr)		delete m_temp_pos;
 }
 
-void Tower::attack(BaseUnit& p_target) {
-	p_target.take_dmg(m_atk->attack());
-}
-
 void Tower::render_unit(HINSTANCE p_hinst, HDC p_dc) {
 	m_render.render_unit(p_hinst, p_dc, id_bm[m_id], m_pos->get_pos());
+}
+
+template<class Unit>
+bool Tower::attack(Unit& p_target) {
+	if ((m_atk_valid->is_in_range(m_pos->get_pos(), p_target.get_pos()) == false)) {
+		m_atk_interval->validate_interval(false);
+		return false;
+	}
+	if ((m_atk_interval->validate_interval(true)) == false) return true;
+	p_target.take_dmg(m_atk->attack());
+	return true;
+}
+
+template<class Unit>
+void Tower::update(Unit& p_target, POINT p_pos) {
+	attack(p_target);
 }

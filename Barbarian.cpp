@@ -12,9 +12,9 @@ Barbarian::Barbarian() {
 	m_is_moving = true;
 }
 
-Barbarian::Barbarian(const int p_id, const POINT p_pos, const HINSTANCE p_hinst, const HWND p_hwnd) {
-	HDC h_dc, h_imgdc;
-	HBITMAP h_bit, h_oldbit;
+Barbarian::Barbarian(const int p_id, const POINT p_pos, const HWND p_hwnd) {
+	//HDC h_dc, h_imgdc;
+	//HBITMAP h_bit, h_oldbit;
 
 	m_id = p_id;
 	m_hp = new Hp(30);
@@ -23,15 +23,15 @@ Barbarian::Barbarian(const int p_id, const POINT p_pos, const HINSTANCE p_hinst,
 	m_atk = new Attacking(16);
 	m_pos = new Position(p_pos);
 	m_temp_pos = new Position(p_pos);
-	h_dc = GetDC(p_hwnd);
-	h_imgdc = CreateCompatibleDC(h_dc);
-	h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP6));
-	h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
-	m_mov_valid = new MovementValidation(20, p_hwnd, h_bit);
-	SelectObject(h_imgdc, h_oldbit);
-	DeleteObject(h_bit);
-	DeleteDC(h_imgdc);
-	ReleaseDC(p_hwnd, h_dc);
+	//h_dc = GetDC(p_hwnd);
+	//h_imgdc = CreateCompatibleDC(h_dc);
+	//h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP6));
+	//h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
+	m_mov_valid = new MovementValidation(20, p_hwnd);
+	//SelectObject(h_imgdc, h_oldbit);
+	//DeleteObject(h_bit);
+	//DeleteDC(h_imgdc);
+	//ReleaseDC(p_hwnd, h_dc);
 	m_is_moving = true;
 }
 
@@ -45,6 +45,10 @@ Barbarian::~Barbarian() {
 	if (m_mov_valid != nullptr)		delete m_mov_valid;
 }
 
+void Barbarian::render_unit(HINSTANCE p_hinst, HDC p_dc) {
+	m_render.render_unit(p_hinst, p_dc, id_bm[2], m_pos->get_pos());
+}
+
 void Barbarian::move(const POINT p_target_pos) {
 	m_mov_valid->temp_move(m_temp_pos->get_pos(), p_target_pos);
 	if (m_mov_valid->validate_move(m_temp_pos->get_pos()) == false) {
@@ -55,7 +59,8 @@ void Barbarian::move(const POINT p_target_pos) {
 }
 //HINSTANCE, HDC, int, POINT, RECT
 
-bool Barbarian::attack(BaseUnit& p_target) {
+template <class Unit>
+bool Barbarian::attack(Unit& p_target) {
 	if ((m_atk_valid->is_in_range(m_pos->get_pos(), p_target.get_pos()) == false)) {
 		m_atk_interval->validate_interval(false);
 		return false;
@@ -65,6 +70,8 @@ bool Barbarian::attack(BaseUnit& p_target) {
 	return true;
 }
 
-void Barbarian::render_unit(HINSTANCE p_hinst, HDC p_dc) {
-	m_render.render_unit(p_hinst, p_dc, id_bm[2], m_pos->get_pos());
+template<class Unit>
+void Barbarian::update(Unit& p_target, POINT p_pos) {
+	if (attack(p_target) == true) return;
+	move(p_pos);
 }

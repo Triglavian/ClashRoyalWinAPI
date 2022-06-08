@@ -5,10 +5,9 @@ MovementValidation::MovementValidation() {	//do not use
 	m_rad = 0;
 	m_distance = 0;
 	m_window = { 0, 0, 0, 0 };	
-	m_area = { 0, 0, 0, 0 };
 }
 
-MovementValidation::MovementValidation(int p_speed, HWND p_hwnd, HBITMAP h_bit) {	//use this
+MovementValidation::MovementValidation(int p_speed, HWND p_hwnd) {	//use this
 	m_speed = p_speed;
 	m_rad = 0;
 	m_distance = 0;
@@ -18,9 +17,6 @@ MovementValidation::MovementValidation(int p_speed, HWND p_hwnd, HBITMAP h_bit) 
 	m_window.top += 50;
 	m_window.right -= 50;
 	m_window.bottom = 450;
-	BITMAP bit;
-	GetObject(h_bit, sizeof(BITMAP), &bit);
-	m_area = { -(bit.bmWidth / 2), -(bit.bmHeight / 2), bit.bmWidth / 2, bit.bmHeight / 2 };
 }
 
 MovementValidation::~MovementValidation() { }
@@ -37,10 +33,10 @@ void MovementValidation::temp_move(POINT& p_unit_temp_pos, const POINT p_target_
 }
 
 bool MovementValidation::validate_move(const POINT p_unit_temp_pos) {	//validate is temp move in playable area
-	return !(p_unit_temp_pos.x + m_area.left < m_window.left		||
-		p_unit_temp_pos.x + m_area.right	> m_window.right	||
-		p_unit_temp_pos.y + m_area.top		< m_window.top		||
-		p_unit_temp_pos.y + m_area.bottom	> m_window.bottom);
+	return !(p_unit_temp_pos.x < m_window.left	||
+		p_unit_temp_pos.x > m_window.right		||
+		p_unit_temp_pos.y < m_window.top		||
+		p_unit_temp_pos.y > m_window.bottom);
 }
 
 void MovementValidation::get_rad(const POINT p_pos1, const POINT p_pos2) {	//get rad by each side
