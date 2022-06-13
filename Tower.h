@@ -5,16 +5,19 @@
 #include "Attacking.h"
 #include "Rendering.h"
 
-class Tower : protected BaseUnit {
+class Tower : public BaseUnit {
 private:
 	Interval* m_atk_interval;
 	AttackRangeValidation* m_atk_valid;
 	Attacking* m_atk;
 
+	//Target* m_target;
 	Rendering m_render;
 	const int id_bm[2] = { IDB_BITMAP7, IDB_BITMAP8 };
 	template <class Unit>
-	bool attack(Unit&);		//target 
+	void set_target(std::vector<Unit*>);
+	bool attack();		//target 
+	BaseUnit* m_target;
 public:
 	Tower();
 	Tower(const int, const POINT);
@@ -22,7 +25,7 @@ public:
 
 	//E_STATE get_state();
 	//void set_state_type(const E_STATE);
-	template <class Unit>
-	void update(Unit&, POINT);
+	//void update(std::vector<Archer*>, std::vector<Barbarian*>, std::vector<Tower*>);
+	int get_hp();
 	void render_unit(HINSTANCE, HDC);
 };

@@ -9,13 +9,9 @@ Barbarian::Barbarian() {
 	m_pos = new Position();
 	m_temp_pos = new Position();
 	m_mov_valid = new MovementValidation();
-	m_is_moving = true;
 }
 
 Barbarian::Barbarian(const int p_id, const POINT p_pos, const HWND p_hwnd) {
-	//HDC h_dc, h_imgdc;
-	//HBITMAP h_bit, h_oldbit;
-
 	m_id = p_id;
 	m_hp = new Hp(30);
 	m_atk_interval = new Interval(800);
@@ -23,16 +19,9 @@ Barbarian::Barbarian(const int p_id, const POINT p_pos, const HWND p_hwnd) {
 	m_atk = new Attacking(16);
 	m_pos = new Position(p_pos);
 	m_temp_pos = new Position(p_pos);
-	//h_dc = GetDC(p_hwnd);
-	//h_imgdc = CreateCompatibleDC(h_dc);
-	//h_bit = LoadBitmap(p_hinst, MAKEINTRESOURCE(IDB_BITMAP6));
-	//h_oldbit = (HBITMAP)SelectObject(h_imgdc, h_bit);
+
 	m_mov_valid = new MovementValidation(20, p_hwnd);
-	//SelectObject(h_imgdc, h_oldbit);
-	//DeleteObject(h_bit);
-	//DeleteDC(h_imgdc);
-	//ReleaseDC(p_hwnd, h_dc);
-	m_is_moving = true;
+
 }
 
 Barbarian::~Barbarian() {
@@ -49,29 +38,34 @@ void Barbarian::render_unit(HINSTANCE p_hinst, HDC p_dc) {
 	m_render.render_unit(p_hinst, p_dc, id_bm[2], m_pos->get_pos());
 }
 
-void Barbarian::move(const POINT p_target_pos) {
-	m_mov_valid->temp_move(m_temp_pos->get_pos(), p_target_pos);
-	if (m_mov_valid->validate_move(m_temp_pos->get_pos()) == false) {
-		m_is_moving = m_movement.CancelMove(m_temp_pos->get_pos(), m_pos->get_pos());
+void Barbarian::move() {
+	m_mov_valid->temp_move(m_temp_pos->get_pos(), m_target->get_pos());
+	if (m_mov_valid->validate_move(m_temp_pos->get_pos()) == false) {	//exception dest is out of playable area
+		m_movement.CancelMove(m_temp_pos->get_pos(), m_pos->get_pos());
 		return;
 	}
-	m_is_moving = m_movement.Move(m_pos->get_pos(), m_temp_pos->get_pos());
+	m_movement.Move(m_pos->get_pos(), m_temp_pos->get_pos());
 }
-//HINSTANCE, HDC, int, POINT, RECT
-
-template <class Unit>
-bool Barbarian::attack(Unit& p_target) {
-	if ((m_atk_valid->is_in_range(m_pos->get_pos(), p_target.get_pos()) == false)) {
-		m_atk_interval->validate_interval(false);
-		return false;
+void Barbarian::set_target(std::vector<Tower*> p_unitlist) {
+	for (auto item : p_unitlist) {
+		if ((p_unitlist.size() <= 0) || get_distance(get_pos(), m_target->get_pos()) > get_distance(get_pos(), item->get_pos())) {	//set target if target is not exist or new unit is closer than current target
+			m_target = item;
+		}
 	}
-	if ((m_atk_interval->validate_interval(true)) == false) return true;
-	p_target.take_dmg(m_atk->attack());
-	return true;
 }
 
-template<class Unit>
-void Barbarian::update(Unit& p_target, POINT p_pos) {
-	if (attack(p_target) == true) return;
-	move(p_pos);
+bool Barbarian::attack() {
+	if ((m_atk_valid->is_in_range(m_pos->get_pos(), m_target->get_pos()) == false)) {	//exception target is out of range
+		m_atk_interval->validate_interval(false);	//reset attack tick
+		return false;	//begin to move
+	}
+	if ((m_atk_interval->validate_interval(true)) == false) return true;	//exception attack tick not over, hold and wait to next attack
+	m_target->take_dmg(m_atk->attack());
+	return true;	//hold and wait no next attack
+}
+
+void Barbarian::update(std::vector<Tower*> p_tower_list) {
+	set_target(p_tower_list);
+	if (attack() == true) return;	//exception attacking status, hold pos and wait next attack
+	move();
 }

@@ -1,5 +1,22 @@
 #include "BaseUnit.h"
 
+BaseUnit::BaseUnit() {
+	m_hp = nullptr;
+	m_pos = nullptr;
+	m_temp_pos = nullptr;
+	m_id = -1;
+}
+
+BaseUnit::~BaseUnit() {
+	if (m_hp != nullptr) delete m_hp;
+	if (m_pos != nullptr) delete m_pos;
+	if (m_temp_pos != nullptr) delete m_temp_pos;
+}
+
+double BaseUnit::get_distance(const POINT p_pos1, const POINT p_pos2) {
+	return sqrt(pow((double)p_pos1.x - (double)p_pos2.x, 2) + pow((double)p_pos1.y - (double)p_pos2.y, 2));
+}
+
 int BaseUnit::get_hp() {	//get current unit's hp
 	return m_hp->get_hp();
 }
@@ -16,33 +33,10 @@ POINT BaseUnit::get_temp_pos() {
 	return m_temp_pos->get_pos();
 }
 
-BaseUnit::BaseUnit()
-{
-}
-
 void BaseUnit::set_temp_pos(const POINT p_pos) {
 	m_temp_pos->set_pos(p_pos);
 }
 
-BaseUnit::~BaseUnit()
-{
-}
-
 void BaseUnit::take_dmg(const int p_dmg) {
 	m_hp->take_dmg(p_dmg);
-}
-
-void BaseUnit::render_unit(HINSTANCE p_hinst, HDC p_dc) {
-
-}
-
-template<class Unit> 
-void BaseUnit::get_target(std::vector<Unit*> p_unit_list) {
-	static double min_dist;
-	double current_dist;
-	for (auto item : p_unit_list) {
-		current_dist = MovementValidation::get_distance(get_pos(), item->get_pos());
-		if (current_dist < min_dist) min_dist = current_dist;
-
-	}
 }

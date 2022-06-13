@@ -17,6 +17,7 @@ public:
 	UnitManager();
 	UnitManager(int);
 	~UnitManager();
+	bool game_status();
 	void CreateUnit(HWND, int, POINT);
 	void update();
 	void rendering(HINSTANCE, HDC);

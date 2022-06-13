@@ -43,19 +43,21 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance , LPSTR lpszCm
 HBITMAP g_membit;
 POINT g_btpos[2];	//each card button pos
 RECT playable_area;
-UnitManager team1_manager;
-UnitManager team2_manager;
+UnitManager* team1_manager;
+UnitManager* team2_manager;
 
 void render(HWND, WPARAM, LPARAM);
+
 #define CARD_ARCH 101
 #define CARD_BARB 102
+
 void draw_bitmap(HDC, int, int, HBITMAP);
 bool validate_click(POINT);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
 	HDC h_dc, h_memdc;
 	PAINTSTRUCT ps;
-	HBITMAP h_bit, h_oldbit;
+	HBITMAP h_bit;
 	BITMAP bit;
 	POINT cursor;
 	static int selected;
@@ -76,24 +78,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 			playable_area = { playable_area.left += 50, playable_area.top += 50, playable_area.right -= 50, 450 };
 			selected = 0;
 			SetTimer(hWnd, 1, 200, nullptr);
+			team1_manager = new UnitManager(0);
+			team2_manager = new UnitManager(1);
 			return 0;
 		case WM_TIMER:
-			team1_manager.update();
-			team2_manager.update();
+			team1_manager->update();
+			team2_manager->update();
+			if ((team1_manager->game_status() || team2_manager->game_status()) == false) {
+				KillTimer(hWnd, 1);
+				MessageBox(hWnd, TEXT(""), TEXT("Game Over!"), MB_OK);
+			}
 			render(hWnd, wParam, lParam);
 			return 0;
 		case WM_COMMAND:
-			switch (wParam) {
+			switch (LOWORD(wParam)) {
 				case CARD_ARCH:
 				case CARD_BARB:
-					selected = wParam;
+					selected = LOWORD(wParam);
 					break;
 			}
 			return 0;
 		case WM_LBUTTONDOWN:
 			GetCursorPos(&cursor);
+			ScreenToClient(hWnd, &cursor);
 			if (validate_click(cursor) == false) return 0;
-			unit_manager.CreateUnit(hWnd, selected, cursor);
+			team1_manager->CreateUnit(hWnd, selected, cursor);
 			return 0;
 		case WM_PAINT:
 			h_dc = BeginPaint(hWnd, &ps);
@@ -113,9 +122,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
 	HDC h_dc, h_memdc, h_imgdc;
 	HBITMAP h_oldbit;
-	BITMAP bit;
 	RECT window;
-	TCHAR str[128];
 	h_dc = GetDC(p_hwnd);
 	h_memdc = CreateCompatibleDC(h_dc);
 	h_imgdc	= CreateCompatibleDC(h_memdc);
@@ -127,47 +134,14 @@ void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
 	FillRect(h_memdc, &window, (HBRUSH)GetSysColor(WHITE_BRUSH));
 
 	Rectangle(h_memdc, window.left + 50, window.top + 50, window.right - 50, 450);
-	if(archer != nullptr) archer->render_unit(g_hInst, h_memdc);
-	if (barb != nullptr) {
-		barb->render_unit(g_hInst, h_memdc);
-		wsprintf(str, TEXT("HP : %d"), barb->get_hp());
-		TextOut(h_memdc, 0, 0, str, lstrlen(str));
-	}
-	if (tower != nullptr) {
-		tower->render_unit(g_hInst, h_memdc);
-	}
+	team1_manager->rendering(g_hInst, h_memdc);
+	team2_manager->rendering(g_hInst, h_memdc);
 	DeleteDC(h_imgdc);	
 	SelectObject(h_memdc, g_membit);
 	DeleteDC(h_memdc);
 	ReleaseDC(p_hwnd, h_dc);
 	InvalidateRect(p_hwnd, nullptr, false);
 }
-
-//void render(HWND p_hwnd, WPARAM p_wparam, LPARAM p_lparam) {
-//	HDC h_dc, h_memdc, h_imgdc;
-//	HBITMAP h_bit, h_oldbit, h_gbit;
-//	BITMAP bit;
-//	RECT window;
-//	h_dc = GetDC(p_hwnd);
-//	h_memdc = CreateCompatibleDC(h_dc);
-//	h_imgdc = CreateCompatibleDC(h_dc);
-//	GetClientRect(p_hwnd, &window);
-//	if (g_membit == nullptr) {
-//		g_membit = CreateCompatibleBitmap(h_dc, window.right, window.bottom);
-//	}
-//	FillRect(h_memdc, &window, (HBRUSH)GetSysColor(WHITE_BRUSH));
-//
-//	archer->render_unit(g_hInst, h_memdc);
-//	Rectangle(h_memdc, window.left + 50, window.top + 50, window.right - 50, 450);
-//
-//
-//
-//	DeleteDC(h_imgdc);
-//	SelectObject(h_memdc, h_gbit);
-//	DeleteDC(h_memdc);
-//	ReleaseDC(p_hwnd, h_dc);
-//	InvalidateRect(p_hwnd, nullptr, false);
-//}
 
 void draw_bitmap(HDC p_dc, int p_x, int p_y, HBITMAP p_hbitmap) {
 	HDC h_memdc; 
